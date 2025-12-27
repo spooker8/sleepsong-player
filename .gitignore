@@ -1,0 +1,25 @@
+# Build artifacts
+.build/
+xtool/
+*.ipa
+*.app
+
+# Swift Package Manager
+.swiftpm/
+Package.resolved
+
+# macOS
+.DS_Store
+
+# Xcode generated
+DerivedData/
+*.xcuserstate
+
+# Large audio files (can be re-downloaded)
+*.mp3
+
+# WSL wrapper build artifacts
+squashfs-root/
+
+# Swift toolchains
+swift_install/
