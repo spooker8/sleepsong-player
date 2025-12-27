@@ -1,204 +1,201 @@
-# iOS Audio Player App
+# 🎵 Sleep Song Player
 
-A simple iOS audio player app built with SwiftUI and Swift Package Manager, designed to be compiled using xtool on Windows.
+An iOS audio player app with background playback support, built entirely on Windows using Swift Package Manager and [xtool](https://xtool.sh).
 
-## Features
+## ✨ Features
 
-- Play MP3 audio files with auto-play on launch
-- Standard playback controls: Play, Pause, Stop, Rewind (10s), Fast Forward (10s)
-- Progress bar with seek functionality
-- Time display (current position / total duration)
-- Background playback support
-- Lock screen and Control Center integration
+- 🎵 **Audio Playback** - Play MP3 audio files with full playback controls
+- 🔄 **Background Audio** - Music continues playing when the app is minimized or screen is locked
+- 🎛️ **Lock Screen Controls** - Control playback from the iOS lock screen and Control Center
+- ⏩ **Playback Controls** - Play, pause, stop, rewind (10s), fast-forward (10s)
+- 📊 **Progress Bar** - Visual progress indicator with seek functionality
+- 🎨 **Modern UI** - Beautiful gradient background with SwiftUI
 
-## Project Structure
+## 📱 Screenshots
 
+The app features a clean, modern interface with:
+- Gradient purple/blue background
+- Large play/pause button
+- Rewind and fast-forward controls
+- Progress slider with time display
+- Stop button
+
+## 🛠️ How It Was Built
+
+This app was built **entirely on Windows** without Xcode, using:
+
+### Technologies
+- **Swift 6.2.3** - Latest Swift toolchain for Ubuntu
+- **SwiftUI** - Modern declarative UI framework
+- **AVFoundation** - Audio playback and session management
+- **MediaPlayer** - Lock screen and Control Center integration
+- **xtool** - Cross-platform iOS build tool
+
+### Build Environment
+- **Windows 11** with WSL2 (Ubuntu 24.04)
+- **xtool** for iOS compilation and signing
+- **Swift Package Manager** for dependency management
+- **Xcode 26.2 SDK** - Extracted for iOS frameworks
+
+### Key Implementation Details
+
+#### Background Audio
+Background audio playback requires two things:
+
+1. **Info.plist Configuration**:
+```xml
+<key>UIBackgroundModes</key>
+<array>
+    <string>audio</string>
+</array>
 ```
-c:/iosapp/
-├── Package.swift                    # SPM package manifest
-├── Sources/
-│   └── iosapp/
-│       ├── iosappApp.swift           # App entry point
-│       ├── ContentView.swift         # Main SwiftUI view
-│       └── AudioPlayerViewModel.swift # Audio playback logic
-├── Resources/
-│   ├── Info.plist                    # App configuration
-│   └── audio/
-│       └── sleepsong.mp3            # Audio file
-└── README.md                        # This file
+
+2. **AVAudioSession Setup**:
+```swift
+let audioSession = AVAudioSession.sharedInstance()
+try audioSession.setCategory(.playback, mode: .default, options: [])
+try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
 ```
 
-## Requirements
+#### Swift 6 Concurrency
+The app uses a delegate wrapper pattern to handle Swift 6's strict concurrency requirements:
 
-- Windows 10/11 with WSL2 (Windows Subsystem for Linux)
-- xtool installed (see https://github.com/xtool-org/xtool)
-- Xcode SDK (download from https://developer.apple.com/download/all/)
-- iPhone with iOS 17.0 or later
-- USB cable for device connection
+```swift
+private class AudioPlayerDelegateWrapper: NSObject, AVAudioPlayerDelegate {
+    private let onFinished: (Bool) -> Void
+    
+    func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
+        onFinished(flag)
+    }
+}
+```
 
-## Building with xtool
+## 🚀 Building the App
 
 ### Prerequisites
 
-1. **Install Xcode SDK** (one-time setup):
-   - Download Xcode.xip from https://developer.apple.com/download/all/
-   - Install the SDK:
-     ```bash
-     xtool sdk install path/to/Xcode.xip
-     ```
+1. **Windows with WSL2** (Ubuntu 24.04 recommended)
+2. **Swift toolchain** for Linux
+3. **xtool** installed in WSL
+4. **Xcode.xip** for iOS SDK extraction
+5. **Apple Developer Account** (free or paid)
 
-2. **Authenticate with Apple** (if not already done):
-   ```bash
-   xtool auth
-   ```
+### Setup Steps
 
-3. Ensure xtool is properly installed and accessible via WSL:
-   ```bash
-   xtool --version
-   ```
-
-4. Connect your iPhone to your computer via USB and trust the computer on your device.
-
-### Build the App
-
-From the project root directory (`c:/iosapp`):
-
+1. **Install Swift in WSL**:
 ```bash
-xtool dev
+wget https://download.swift.org/swift-6.2.3-release/ubuntu2404/swift-6.2.3-RELEASE/swift-6.2.3-RELEASE-ubuntu24.04.tar.gz
+tar -xzf swift-6.2.3-RELEASE-ubuntu24.04.tar.gz
+export PATH="$HOME/swift-6.2.3-RELEASE-ubuntu24.04/usr/bin:$PATH"
 ```
 
-This will compile the Swift package and create the iOS app bundle.
-
-**Note:** If you get an error about Swift not being found, ensure you've installed the Xcode SDK using `xtool sdk install <path>`.
-
-### Deploy to iPhone
-
+2. **Install xtool**:
 ```bash
-xtool install iosapp.ipa
+# Download xtool AppImage and extract
+./xtool --appimage-extract
 ```
 
-This will install the app on your connected iPhone.
-
-**Note:** First build the app using `xtool dev` to generate the `.ipa` file.
-
-### Clean Build
-
-Remove build artifacts:
+3. **Setup iOS SDK**:
 ```bash
-# Remove .build directory
-Remove-Item -Recurse -Force .build
-
-# Or on Linux/WSL
-rm -rf .build
+./fixed_xtool.sh setup
+# Provide path to Xcode.xip when prompted
 ```
 
-### Other Useful Commands
-
+4. **Build the App**:
 ```bash
-# List connected devices
-xtool devices
-
-# Launch installed app
-xtool launch com.example.iosapp
-
-# Uninstall app
-xtool uninstall com.example.iosapp
+./fixed_xtool.sh dev
 ```
 
-## Audio File
+### Configuration Files
 
-The app is configured to play `sleepsong.mp3` located in `Resources/audio/`. To use a different audio file:
+**xtool.yml**:
+```yaml
+version: 1
+orgID: "YOUR_TEAM_ID"
+displayName: "Sleep Song Player"
+infoPath: "iosapp/Info.plist"
+```
 
-1. Place your MP3 file in `Resources/audio/`
-2. Update the filename in `Sources/iosapp/AudioPlayerViewModel.swift`:
-   ```swift
-   guard let url = Bundle.module.url(forResource: "audio/your-filename", withExtension: "mp3")
-   ```
-
-## Troubleshooting
-
-### Build Errors
-
-**Error: "Could not find audio file"**
-- Ensure `sleepsong.mp3` exists in `Resources/audio/`
-- Check that the filename matches exactly (case-sensitive)
-
-**Error: "Could not find executable 'swift' in PATH"**
-- Install Xcode SDK using: `xtool sdk install path/to/Xcode.xip`
-- Download Xcode from https://developer.apple.com/download/all/
-
-**Error: "Package.swift not found"**
-- Ensure you're in the project root directory (`c:/iosapp`)
-
-**Error: "xtool not found"**
-- Ensure xtool is installed and accessible via WSL
-- Try running `wsl xtool --version` to verify
-
-### Deployment Issues
-
-**Error: "No device found"**
-- Ensure your iPhone is connected via USB
-- Ensure you've trusted the computer on your iPhone (unlock device and tap "Trust")
-- Try disconnecting and reconnecting the USB cable
-
-**Error: "Installation failed"**
-- Ensure your iPhone has enough storage space
-- Try restarting your iPhone and computer
-
-### Background Audio Not Working
-
-- Ensure `UIBackgroundModes` is set to `audio` in `Resources/Info.plist`
-- Check that the app has permission to play audio in background
-- Test on a physical device (background audio may not work in simulator)
-
-## Development
-
-### Modifying the UI
-
-The main UI is defined in `Sources/iosapp/ContentView.swift`. This file contains the SwiftUI view with:
-- Gradient background
-- Music note icon and title
-- Progress slider
-- Time display
-- Playback control buttons
-
-### Modifying Audio Logic
-
-Audio playback logic is in `Sources/iosapp/AudioPlayerViewModel.swift`. Key components:
-- `AVAudioPlayer` for audio playback
-- `MPNowPlayingInfoCenter` for lock screen info
-- `MPRemoteCommandCenter` for remote controls
-
-### Adding Dependencies
-
-To add Swift Package dependencies, update `Package.swift`:
-
+**Package.swift**:
 ```swift
-dependencies: [
-    .package(url: "https://github.com/example/package", from: "1.0.0")
-]
+// swift-tools-version: 5.9
+import PackageDescription
+
+let package = Package(
+    name: "iosapp",
+    platforms: [.iOS(.v17)],
+    products: [
+        .library(name: "iosapp", targets: ["iosapp"])
+    ],
+    targets: [
+        .target(
+            name: "iosapp",
+            dependencies: [],
+            path: "iosapp",
+            resources: [
+                .process("audio"),
+                .process("Assets.xcassets")
+            ]
+        )
+    ]
+)
 ```
 
-And add to the target dependencies:
-```swift
-targets: [
-    .executableTarget(
-        name: "iosapp",
-        dependencies: [
-            .product(name: "PackageName", package: "PackageName")
-        ],
-        ...
-    )
-]
+## 📁 Project Structure
+
+```
+iosapp/
+├── Package.swift           # Swift Package Manager config
+├── xtool.yml              # xtool build configuration
+├── fixed_xtool.sh         # WSL build wrapper script
+├── xtool.bat              # Windows batch wrapper
+├── README.md              # This file
+└── iosapp/
+    ├── iosappApp.swift    # App entry point
+    ├── ContentView.swift  # Main UI
+    ├── AudioPlayerViewModel.swift  # Audio logic
+    ├── Info.plist         # iOS app configuration
+    ├── audio/
+    │   └── sleepsong.mp3  # Audio file
+    └── Assets.xcassets/
+        └── AppIcon.appiconset/
+            ├── Contents.json
+            └── icon-1024.png
 ```
 
-## License
+## 📲 Installation
 
-This project is provided as-is for educational and personal use.
+### Option 1: Sideloadly (Recommended)
+1. Download [Sideloadly](https://sideloadly.io/)
+2. Connect your iPhone via USB
+3. Drag the `iosapp.ipa` into Sideloadly
+4. Enter your Apple ID and click Start
+5. On iPhone: Settings → General → VPN & Device Management → Trust the certificate
+6. Enable Developer Mode: Settings → Privacy & Security → Developer Mode → ON
 
-## Credits
+### Option 2: AltStore
+1. Install [AltStore](https://altstore.io/)
+2. Use AltStore to install the IPA
 
-- Built with SwiftUI
-- Uses AVFoundation for audio playback
-- Uses MediaPlayer for lock screen controls
-- Compiled with xtool (https://github.com/xtool-org/xtool)
+## 🔧 Troubleshooting
+
+### Audio Doesn't Play in Background
+- Ensure `UIBackgroundModes` with `audio` is in Info.plist
+- Check that `infoPath` is set in xtool.yml
+- Verify AVAudioSession is set to `.playback` category
+
+### Build Fails with Swift Concurrency Errors
+- Use the delegate wrapper pattern for AVAudioPlayerDelegate
+- Mark view models with `@MainActor`
+
+### Bundle Identifier Error in Sideloadly
+- Replace Xcode variables like `$(PRODUCT_BUNDLE_IDENTIFIER)` with actual values in Info.plist
+
+## 📄 License
+
+MIT License - feel free to use and modify!
+
+## 🙏 Acknowledgments
+
+- [xtool](https://xtool.sh) - Making iOS development possible on Windows/Linux
+- Apple's SwiftUI and AVFoundation frameworks
